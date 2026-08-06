@@ -51,6 +51,13 @@ Confirm the app has no WebView before dismissing the web clauses:
 grep -rniE "webview|iframe|loadUrl" app/src/main
 ```
 
+Then run the check that actually finds native-ad violations — theme attributes leaking into the
+ad layout (A7):
+
+```
+grep -n "?attr/color" app/src/main/res/layout/item_native_ad.xml
+```
+
 ## Step 2 — official sources, always verify against these
 
 | Topic | URL |
@@ -352,9 +359,20 @@ completes.
 
 **Rules, verbatim.**
 
+> "The native ad design must **clearly distinguish** the ad from the app's content."
+
 > "app content **must not overlap** the native ad" — causes invalid clicks
 
-> "camouflaging the Ad attribution or AdChoices overlay" is prohibited
+> Prohibited: "**Camouflaging ad elements as navigation controls** in surrounding content."
+
+> Prohibited: "Camouflaging the Ad attribution or AdChoices overlay."
+
+> "You must clearly display the text 'Ad', 'Advertisement', or 'Sponsored' (localized
+> appropriately)." The badge must be "a minimum of **15px height and width**."
+
+> "The background of the ad must be **not clickable** (no clickable 'white space')."
+
+> The call-to-action text "may truncate after 15 characters."
 
 > "Scaling an image or video element can be done by modifying the aspect ratio. However,
 > **distorting (stretching/squeezing)** the image or video by changing its aspect ratio is
@@ -373,8 +391,11 @@ completes.
 - The "Ad" badge hidden, tiny, or low-contrast.
 - A card styled to be indistinguishable from tappable app content.
 - Mutating `MediaView` size after load.
+- **The ad layout referencing the app's own theme attributes** — see the theme-attribute trap
+  below. This is the most common form of the violation and the hardest to see in a diff.
+- A click listener on the `NativeAdView` or its card container.
 
-**Fix**
+**Fix — media**
 
 ```java
 // preserve the creative's ratio; letterboxing is allowed, distortion is not
@@ -392,8 +413,77 @@ adView.setNativeAd(nativeAd);   // always last
     app:layout_constraintDimensionRatio="16:9" />
 ```
 
-Keep the ad badge visible and legible. Leave AdChoices placement to the SDK unless a
-real-device test proves it wrong.
+**Fix — the theme-attribute trap**
+
+An ad layout written with `?attr/colorPrimary`, `?attr/colorSurface`, and friends inherits the
+app's identity by construction. The ad then *is* the app's visual language, which is exactly
+what "clearly distinguish" forbids — and the call-to-action button wearing `?attr/colorPrimary`
+is literally "camouflaging ad elements as navigation controls," because that colour is what the
+app's own buttons and nav indicators wear.
+
+It looks like good practice. It is the violation.
+
+```xml
+<!-- WRONG — the ad borrows the app's palette, so it reads as app content -->
+<com.google.android.material.card.MaterialCardView
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:strokeColor="?attr/colorSurfaceVariant">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/ad_call_to_action"
+        android:backgroundTint="?attr/colorPrimary"
+        android:textColor="?attr/colorOnPrimary" />
+```
+
+```xml
+<!-- RIGHT — dedicated ad colours, outside the app's identity palette -->
+<com.google.android.material.card.MaterialCardView
+    app:cardBackgroundColor="@color/ad_card_surface"
+    app:strokeColor="@color/ad_card_stroke">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/ad_call_to_action"
+        android:backgroundTint="@color/ad_cta_background"
+        android:textColor="@color/ad_cta_text" />
+```
+
+Define the tokens once, with a night variant, in a hue the app does not use anywhere else:
+
+```xml
+<!-- values/colors.xml -->
+<color name="ad_card_surface">#EFF1F5</color>
+<color name="ad_card_stroke">#C9D2DD</color>
+<color name="ad_cta_background">#37475F</color>
+<color name="ad_cta_text">#FFFFFF</color>
+
+<!-- values-night/colors.xml -->
+<color name="ad_card_surface">#23262C</color>
+<color name="ad_card_stroke">#3C424C</color>
+<color name="ad_cta_background">#7E93B8</color>
+<color name="ad_cta_text">#10151F</color>
+```
+
+**Do not** also change corner radius, elevation, or margins. Colour separation satisfies the
+rule; changing the geometry makes the list look broken for no policy gain.
+
+**How to pick the hue.** List the app's identity colours — primary, secondary, and any accent
+used on buttons or navigation. Choose the ad hue outside that set. A cool neutral grey works
+for almost any palette because virtually no app uses it as an action colour. Keep the
+button's text-on-background contrast above 4.5:1 in both themes.
+
+**Fix — badge, AdChoices, and click targets**
+
+The badge must read "Ad" / "Advertisement" / "Sponsored" (or its local equivalent), be at least
+15px on each side, and carry enough contrast to be legible. Give it a colour that is *not* the
+app's primary container, for the same reason as the button.
+
+Leave AdChoices placement to the SDK unless a real-device test proves it wrong, and keep the
+area behind it visually clear so the icon stays "easily seen."
+
+Never attach a click listener to the `NativeAdView`, its card container, or any transparent
+region — "no clickable 'white space'." The SDK wires the clickable assets through
+`setCallToActionView`, `setHeadlineView`, and the rest. Registering your own is both this
+violation and A1.
 
 ---
 
@@ -435,9 +525,15 @@ Grant the reward **only** inside `onUserEarnedReward`.
 **Rule.** Ads must be clearly distinguishable from app content and must not be labeled in a
 way that misleads.
 
+For **native** ads specifically, the verbatim rules and the colour-token fix live in **A7** —
+"The native ad design must clearly distinguish the ad from the app's content" and the ban on
+"camouflaging ad elements as navigation controls." A9 is the general case; A7 is the one with
+the code.
+
 **Triggers**
 
 - Native ad card visually identical to content cards.
+- An ad layout built from the app's own theme attributes (A7, theme-attribute trap).
 - Headings like "Related", "You may also like", or "Recommended" above ads.
 - Ads dressed as system dialogs, notifications, download buttons, or close buttons.
 - A fake "X" that is actually the ad.
@@ -1098,6 +1194,11 @@ Run these before concluding anything.
 23. **Decoy affordances** — no drawn ✕, ▶, "Next", or pointing cursor that is not the control
     it depicts (D3).
 24. **No video interstitial at launch** — banned by A3, D4, and E3 simultaneously (D4).
+25. **Theme attributes in the ad layout** — grep the native ad layout for `?attr/color`. Every
+    hit is the ad borrowing the app's identity. The call-to-action wearing `?attr/colorPrimary`
+    is the specific one Google names (A7).
+26. **Ad card versus content card** — diff the two layouts. Identical background, stroke, and
+    accent colour means the ad is not distinguished (A7).
 
 # Known false alarms — do not "fix" these
 
