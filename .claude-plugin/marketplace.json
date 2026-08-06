@@ -1,0 +1,14 @@
+{
+  "name": "admob-skills",
+  "owner": {
+    "name": "SajjadMohammed",
+    "url": "https://github.com/SajjadMohammed"
+  },
+  "plugins": [
+    {
+      "name": "admob-policy",
+      "source": "./plugins/admob-policy",
+      "description": "Diagnose and fix AdMob / Google Publisher policy violations in native Android apps."
+    }
+  ]
+}
