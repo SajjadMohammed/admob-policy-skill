@@ -1,0 +1,6 @@
+# JSON manifests must never carry a UTF-8 BOM — the plugin loader's JSON parser
+# rejects it with: Unrecognized token '﻿'.
+# Windows PowerShell 5.1's `Set-Content -Encoding utf8` writes a BOM. Do not use it here.
+*.json text eol=lf working-tree-encoding=UTF-8
+
+*.md text eol=lf
