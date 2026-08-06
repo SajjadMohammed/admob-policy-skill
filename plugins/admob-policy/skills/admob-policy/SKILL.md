@@ -1,6 +1,6 @@
 ---
 name: admob-policy
-description: Diagnose and fix any AdMob or Google Publisher policy violation in a native Android app — full catalog of Policy Center issues with the concrete code fix for each. Covers Modified ad behavior, accidental clicks, unexpected interstitials, ad density, ads interfering with navigation, inventory value, rewards user choice, invalid traffic, EU consent, child-directed tagging, and content policies. Use when an AdMob Policy Center warning arrives, an app is restricted or ads are limited, before shipping ad code, or when auditing a banner / interstitial / native / app-open / rewarded implementation. Triggers - AdMob, AdSense policy, Policy Center, Modified ad behavior, policy violation, ads restricted, ad serving limited, accidental clicks, invalid traffic, AdChoices, NativeAdView, MediaView, AppOpenAd, UMP consent, COPPA, Designed for Families.
+description: Diagnose and fix any AdMob, Google Publisher, or Google Play ads policy violation in a native Android app — full catalog of Policy Center issues with the concrete code fix for each. Covers Modified ad behavior, accidental clicks, unexpected interstitials, ad density, ads interfering with navigation, inventory value, rewards user choice, invalid traffic, refresh rate limits, incentivized clicks, sub-syndication, app-ads.txt, EU consent, personalized advertising, privacy disclosures, COPPA and child-directed tagging, content policies, Publisher Restrictions (limited ads), and Google Play's separate Ads policy including disruptive and out-of-context ads. Use when an AdMob Policy Center warning arrives, an app is restricted or ads are limited, revenue drops with no warning, a Play listing is flagged, before shipping ad code, or when auditing a banner / interstitial / native / app-open / rewarded implementation. Triggers - AdMob, AdSense policy, Policy Center, Modified ad behavior, policy violation, ads restricted, ad serving limited, accidental clicks, invalid traffic, refresh rate, incentivized clicks, app-ads.txt, AdChoices, NativeAdView, MediaView, AppOpenAd, UMP consent, COPPA, Designed for Families, Google Play ads policy, disruptive ads, out-of-context ads.
 ---
 
 # AdMob policy — diagnosis and fixes
@@ -47,6 +47,11 @@ grep -rniE "webview|iframe|loadUrl" app/src/main
 | Child-directed / families | https://support.google.com/admob/answer/6223431 |
 | Native Validator | https://developers.google.com/admob/android/native/validator |
 | App open implementation guide | https://developers.google.com/admob/android/app-open |
+| AdMob behavioral policies | https://support.google.com/admob/answer/2753860 |
+| AdMob implementation guidance | https://support.google.com/admob/answer/2936217 |
+| Banner refresh rate | https://support.google.com/admob/answer/3245199 |
+| **Google Play Ads policy** (separate track) | https://support.google.com/googleplay/android-developer/answer/9857753 |
+| app-ads.txt | https://support.google.com/admob/answer/9363762 |
 
 ---
 
@@ -522,6 +527,105 @@ clicks.
 
 ---
 
+### B2. Refresh rate outside the permitted range
+
+**Rule, verbatim.**
+
+> "The refresh rate may not be set to a value outside of the range specified in the SDK."
+
+Custom banner refresh is **30–150 seconds**, or disabled. Collapsible banners: no less than
+30 seconds. Google's implementation guidance adds: when a user navigates back and forth
+between screens carrying ads, a new ad request should not be made sooner than **60 seconds**.
+
+**Triggers**
+
+- A `Handler`/`Timer`/coroutine calling `adView.loadAd()` on top of the SDK's own refresh.
+- Recreating the `AdView` on every `onResume`, so tab switching fires a request per switch.
+- Reloading a banner in a `ViewPager` page-change listener.
+
+**Fix**
+
+Set refresh in the AdMob console on the ad unit, never in code. Create the `AdView` once per
+screen and reuse it; `onResume()` resumes the existing view, it does not re-request:
+
+```java
+// WRONG — a request per resume
+@Override public void onResume() { super.onResume(); loadBannerAd(container, id); }
+
+// RIGHT — load once, then only resume
+@Override public void onResume() { super.onResume(); if (adView != null) adView.resume(); }
+```
+
+---
+
+### B3. Incentivized or compensated clicks
+
+**Rule, verbatim.**
+
+> "Google ads may not be placed on apps that promise payment or incentives to users who
+> click on or view ads."
+
+This is **not** the rewarded ad format. Rewarded ads are a sanctioned product with their own
+rules (A8). This rule bans paying users for *ordinary* ad views or clicks anywhere in the app.
+
+**Triggers**
+
+- Coins, points, or in-app currency granted for viewing a banner or native ad.
+- "Watch ads to remove ads" loops that pay per impression on non-rewarded formats.
+- Any copy pointing at an ad: "support us", "tap here to help".
+- The app's purpose is driving traffic to a paid-to-click service.
+
+**Fix**
+
+Rewards flow **only** through `RewardedAd` / `RewardedInterstitialAd`, granted only inside
+`onUserEarnedReward`. No reward is ever tied to a banner, native, interstitial, or app open
+impression.
+
+---
+
+### B4. Framing, sub-syndication, and account sharing
+
+**Rules, verbatim.**
+
+> "Publishers may not enter into sub-syndication relationships." Google requires a direct
+> publisher relationship.
+
+Framing third-party content without permission and monetizing it is not allowed. If the
+content is already monetized elsewhere, additional AdMob code must not be layered on the app
+version of it. Sharing AdMob console access or Google SDK code with third parties without
+written consent is also prohibited.
+
+**Triggers**
+
+- One AdMob account serving ads in apps published by other developers.
+- A white-label app template shipped to clients with your ad unit IDs baked in.
+- A `WebView` framing someone else's site with a banner over it.
+
+**Fix**
+
+One AdMob account per publisher, per app they actually own. Never distribute your ad unit IDs
+inside a template or SDK handed to another party.
+
+---
+
+### B5. Authorized inventory — app-ads.txt
+
+**Rule.** "Authorized inventory" is a named requirement in the Google Publisher Policies. An
+`app-ads.txt` file declares who is authorized to sell your app's inventory. Missing or wrong,
+programmatic demand drops and unauthorized resale becomes possible.
+
+Not a violation that gets an app banned, but an enforcement-adjacent revenue problem that
+belongs in the same audit.
+
+**Fix**
+
+1. Set a developer website in the Play Console listing.
+2. Host `https://yourdomain.com/app-ads.txt`.
+3. Paste the exact line AdMob generates under **Apps → app-ads.txt**.
+4. Verify in the AdMob dashboard — it crawls and reports the status.
+
+---
+
 ## C. Privacy and regulatory
 
 ### C1. EU user consent
@@ -558,6 +662,33 @@ MobileAds.setRequestConfiguration(config);
 
 Set this **before** the first ad request, in the Application class.
 
+### C3. The rest of the privacy-related policies
+
+The Google Publisher Policies name six privacy items. C1 and C2 above cover two. The others
+are frequently missed:
+
+| Policy | What it requires |
+|---|---|
+| **Personalized advertising** | Do not build personalized ad audiences from sensitive categories (health, religion, sexual orientation, financial hardship, etc.). Do not personalize ads to children. |
+| **Privacy disclosures** | The app's privacy policy must disclose third-party ad serving, cookies/device identifiers, and how to opt out. Must match the Play Data safety form. |
+| **Identifying users** | Never pass personally identifiable information to Google — no email, name, phone, or precise location in an ad request, ad unit name, custom parameter, or URL. |
+| **Use of device and location data** | Collect and transmit location or device data only with clear disclosure and consent. |
+| **Cookies on Google domains** | Do not modify or interfere with cookies set on Google domains. |
+| **COPPA** | US-specific. Overlaps C2 but is a separate named policy. |
+
+**Triggers in Android code**
+
+- A user ID, email, or account name used as an ad unit name, custom targeting key, or in an
+  `AdRequest` extra.
+- Requesting `ACCESS_FINE_LOCATION` purely to improve ad targeting, without disclosure.
+- A privacy policy that never mentions Google AdMob.
+
+**Fix**
+
+Keep ad requests free of any user-derived value. If the app has a privacy policy screen, it
+must name Google as an ad partner and link
+`https://policies.google.com/technologies/partner-sites`.
+
 ---
 
 ## D. Content policies
@@ -571,16 +702,92 @@ or blocks ad serving regardless of a perfect implementation.
 | Intellectual property abuse | Copyright infringement, counterfeit goods |
 | Dangerous or derogatory | Hatred, harassment, threats, exploitation |
 | Animal cruelty | Gratuitous violence to animals, endangered species trade |
-| Misrepresentative content | Misleading claims, unreliable health/election claims, manipulated media |
+| Misrepresentative content | Misleading representation, unreliable and harmful claims, deceptive practices, manipulated media |
 | Sexually explicit content | Graphic sexual material, non-consensual themes |
+| Compensated sexual acts | Prostitution, escort services, sugar dating |
+| Mail order brides | Arranged-marriage brokering |
 | Adult themes in family content | Adult material disguised as family-appropriate |
 | Child sexual abuse | Zero tolerance |
 | Malware / unwanted software | Distribution or hosting |
 | Enabling dishonest behavior | Tools for deception, hacking, academic cheating |
 | Unsupported languages | Content must be in a supported language |
 | Dishonest declarations | Publisher account information must be accurate |
+| Abusive experiences | Misleading UI: fake system warnings, fake close buttons, auto-redirects |
+| Better Ads Standards | Formats the Coalition for Better Ads found intrusive |
+| Spam policies for web search | Applies to any web content tied to the account |
+| Sanctions compliance | Publisher must not be in a sanctioned jurisdiction |
 
 **Fix.** Remove or gate the offending content, then request review. No code change helps.
+
+---
+
+## D2. Publisher Restrictions — limited ads, not a violation
+
+A different mechanism, easy to mistake for enforcement. Restricted content does **not** get the
+app banned; it **narrows the pool of advertisers**, so revenue falls with no warning in the
+Policy Center.
+
+Categories: sexually suggestive content, shocking content, tobacco, recreational drugs,
+alcohol, gambling and games of skill, video game content, and other sensitive events.
+
+**How this shows up.** eCPM collapses on a specific app or ad unit while the Policy Center
+stays clean.
+
+**Fix.** There is no code fix. Either the app's content sits in a restricted category — accept
+the lower demand — or the app is being *miscategorized*, in which case correct the app's
+content rating and category in AdMob and the Play Console.
+
+---
+
+## E. Google Play's Ads policy — a separate enforcement track
+
+**This is the gap most publishers miss.** AdMob and Google Play enforce independently. A
+perfectly AdMob-compliant app can still be **removed from Play** under Play's own Ads policy,
+and the Policy Center will show nothing.
+
+**Rules, verbatim.**
+
+> Ads must not "force a user to click an ad or submit personal information," and must not
+> "interfere with other apps, ads, or the operation of the device." They must be "easily
+> dismissible without penalty."
+
+> Ads must not "simulate or mimic the user interface of any app feature, such as notifications
+> or warning elements."
+
+> Full-screen interstitials must be "closeable after 15 seconds" — opted-in rewarded ads may
+> exceed this.
+
+> Ads must not interfere "with system or device buttons and ports."
+
+> "It must be clear to the user which app is serving each ad."
+
+Ads must not appear **outside** the app serving them, and must not be triggered by an exit
+button.
+
+**Triggers**
+
+- An ad shown from a foreground service, notification, or on the lock screen.
+- An interstitial on back-press — this violates Play's exit-button rule *and* AdMob's A3.
+- An ad drawn over the navigation bar, status bar, or gesture area.
+- A custom "close" affordance on a full-screen ad that is smaller or slower than the SDK's.
+- Ads shown after the user has left the app.
+
+**Fix**
+
+Never show any ad from a Service, `BroadcastReceiver`, or notification. Show full-screen ads
+only from a foreground Activity the user is currently in. Never replace or overlay the SDK's
+own close button. Apply window insets so no ad container extends under system bars:
+
+```java
+ViewCompat.setOnApplyWindowInsetsListener(binding.adContainerView, (v, insets) -> {
+    Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+    v.setPadding(0, 0, 0, bars.bottom);   // padding on the CONTAINER, never on the AdView
+    return insets;
+});
+```
+
+Declare **"Contains ads"** in the Play Console listing. An undeclared ad-supported app is a
+Play policy violation on its own.
 
 ---
 
@@ -617,6 +824,13 @@ Run these before concluding anything.
 10. **Rewarded opt-in** — explicit tap, reward only in `onUserEarnedReward`.
 11. **Empty and loading states** — ad containers hidden when there is no content.
 12. **Test IDs** — no live ad unit reachable from a debug build.
+13. **Manual refresh** — no `loadAd()` on a timer, no re-request on every `onResume`.
+14. **Reward source** — no in-app currency granted for a non-rewarded impression.
+15. **No PII in ad requests** — no user ID, email, or account name in any targeting value.
+16. **Ads only from a foreground Activity** — never a Service, receiver, or notification.
+17. **System insets** — no ad container under the status, navigation, or gesture bar.
+18. **Play listing** — "Contains ads" declared; privacy policy names Google as an ad partner.
+19. **app-ads.txt** — published and verified in the AdMob dashboard.
 
 # Known false alarms — do not "fix" these
 
@@ -632,6 +846,10 @@ Run these before concluding anything.
   itself; only frequency and unexpectedness are the risk.
 - **IFRAME / floating box / hidden keywords** in the warning text — web boilerplate, never
   applicable to a native app with no WebView.
+- **A revenue drop with a clean Policy Center** is usually Publisher Restrictions (D2) or
+  seasonal demand, not a hidden violation. Do not refactor working ad code chasing it.
+- **Rewarded ads are not "incentivized clicks."** B3 bans paying for ordinary impressions;
+  `RewardedAd` is a sanctioned format with its own rules (A8).
 
 # Reporting rule
 

@@ -28,10 +28,29 @@ Built from a real remediation of a "Modified ad behavior" enforcement on a publi
 | A11 | Inventory value — ads on screens without content |
 | A12 | Out-of-context / replicated content |
 
-**B.** Invalid traffic — **C.** EU user consent (UMP), child-directed apps and Designed for
-Families — **D.** Content policies (12 categories)
+**B. Traffic and account behavior**
 
-Plus: Native Validator setup, a 12-point pre-ship audit checklist, and a
+| # | Violation |
+|---|---|
+| B1 | Invalid traffic |
+| B2 | Refresh rate outside the permitted range |
+| B3 | Incentivized or compensated clicks |
+| B4 | Framing, sub-syndication, and account sharing |
+| B5 | Authorized inventory — app-ads.txt |
+
+**C. Privacy and regulatory** — EU user consent (UMP), child-directed apps and Designed for
+Families, plus the remaining Publisher Policy privacy items: personalized advertising, privacy
+disclosures, identifying users, device and location data, COPPA.
+
+**D. Content policies** (18 categories) and **D2. Publisher Restrictions** — the separate
+mechanism that silently narrows advertiser demand instead of raising a warning.
+
+**E. Google Play's Ads policy — a separate enforcement track.** The gap most publishers miss:
+AdMob and Play enforce independently, so an app that is perfectly AdMob-compliant can still be
+removed from Play with a clean Policy Center. Covers disruptive ads, out-of-context ads, the
+15-second close requirement, device-button interference, and the "Contains ads" declaration.
+
+Plus: Native Validator setup, a 19-point pre-ship audit checklist, and a
 **"known false alarms — do not fix these"** section covering mistakes that are easy to make when
 diagnosing from a screenshot (letterboxing is not distortion; `wrap_content` on a `MediaView`
 breaks the 120x120dp video minimum; AdChoices placement cannot be judged from a screenshot;
@@ -102,9 +121,12 @@ MIT — see [LICENSE](LICENSE).
 إلى موضع الخطأ في الكود. هذه المهارة تحوّل التحذير إلى تعديل ملموس: تحدد القاعدة الحقيقية،
 تقتبسها بنصها من توثيق Google الرسمي، توضّح ما الذي يُطلقها في كود أندرويد، وتعطي الحل.
 
-تغطي 18 مخالفة: التنفيذ والموضع (A1–A12)، الحركة غير الصالحة (B)، موافقة الاتحاد الأوروبي
-والتطبيقات الموجّهة للأطفال (C)، وسياسات المحتوى (D). إضافة إلى Native Validator، وقائمة فحص
-من 12 نقطة قبل النشر، وقسم "إنذارات كاذبة — لا تُصلحها".
+تغطي: التنفيذ والموضع (A1–A12)، الحركة والسلوك — الحركة غير الصالحة ومعدّل التحديث والنقرات
+المحفَّزة والتوزيع الفرعي و app-ads.txt (B1–B5)، الخصوصية والتنظيم — موافقة الاتحاد الأوروبي
+والتطبيقات الموجّهة للأطفال وبقية بنود الخصوصية (C1–C3)، سياسات المحتوى وقيود الناشرين (D، D2)،
+وسياسة إعلانات Google Play كمسار تنفيذ منفصل تماماً (E).
+
+إضافة إلى Native Validator، وقائمة فحص من 19 نقطة قبل النشر، وقسم "إنذارات كاذبة — لا تُصلحها".
 
 **التثبيت:**
 

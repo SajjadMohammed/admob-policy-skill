@@ -1,7 +1,7 @@
 {
   "name": "admob-policy",
-  "version": "1.0.0",
-  "description": "Full catalog of AdMob Policy Center violations with the concrete Android code fix for each: Modified ad behavior, accidental clicks, unexpected interstitials, ad density, inventory value, rewards user choice, invalid traffic, EU consent, COPPA / Designed for Families, and content policies.",
+  "version": "1.1.0",
+  "description": "Full catalog of AdMob, Google Publisher, and Google Play ads policy violations with the concrete Android code fix for each: Modified ad behavior, accidental clicks, unexpected interstitials, ad density, inventory value, rewards user choice, invalid traffic, refresh rate limits, incentivized clicks, app-ads.txt, EU consent, privacy disclosures, COPPA / Designed for Families, content policies, Publisher Restrictions, and Play's separate disruptive / out-of-context ads track.",
   "author": {
     "name": "SajjadMohammed",
     "url": "https://github.com/SajjadMohammed"
