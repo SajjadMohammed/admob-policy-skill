@@ -1,6 +1,6 @@
 ---
 name: admob-policy
-description: Diagnose and fix any AdMob, Google Publisher, or Google Play ads policy violation in a native Android app — full catalog of Policy Center issues with the concrete code fix for each. Covers Modified ad behavior, accidental clicks, unexpected interstitials, ad density, ads interfering with navigation, inventory value, rewards user choice, invalid traffic, refresh rate limits, incentivized clicks, sub-syndication, app-ads.txt, EU consent, personalized advertising, privacy disclosures, COPPA and child-directed tagging, content policies, Publisher Restrictions (limited ads), Google Play's separate Ads policy including disruptive and out-of-context ads, the Families Ads and Monetization requirements, and Better Ads Experiences. Use when an AdMob Policy Center warning arrives, an app is restricted or ads are limited, revenue drops with no warning, a Play listing is flagged, before shipping ad code, or when auditing a banner / interstitial / native / app-open / rewarded implementation. Triggers - AdMob, AdSense policy, Policy Center, Modified ad behavior, policy violation, ads restricted, ad serving limited, accidental clicks, invalid traffic, refresh rate, incentivized clicks, app-ads.txt, AdChoices, NativeAdView, MediaView, AppOpenAd, UMP consent, COPPA, Designed for Families, Google Play ads policy, disruptive ads, out-of-context ads, Families Ads and Monetization, self-certified ads SDK, neutral age screen, Better Ads Experiences, kids app ads, child audience.
+description: Diagnose and fix any AdMob, Google Publisher, or Google Play ads policy violation in a native Android app — full catalog of Policy Center issues with the concrete code fix for each. Covers Modified ad behavior, accidental clicks, unexpected interstitials, ad density, ads interfering with navigation, inventory value, rewards user choice, invalid traffic, refresh rate limits, incentivized clicks, sub-syndication, app-ads.txt, EU consent, personalized advertising, privacy disclosures, COPPA and child-directed tagging, content policies, abusive experiences, Better Ads Standards, Publisher Restrictions (limited ads), Google Play's separate Ads policy including disruptive and out-of-context ads, the Families Ads and Monetization requirements, and Better Ads Experiences. Use when an AdMob Policy Center warning arrives, an app is restricted or ads are limited, revenue drops with no warning, a Play listing is flagged, before shipping ad code, or when auditing a banner / interstitial / native / app-open / rewarded implementation. Triggers - AdMob, AdSense policy, Policy Center, Modified ad behavior, policy violation, ads restricted, ad serving limited, accidental clicks, invalid traffic, refresh rate, incentivized clicks, app-ads.txt, AdChoices, NativeAdView, MediaView, AppOpenAd, UMP consent, COPPA, Designed for Families, Google Play ads policy, disruptive ads, out-of-context ads, Families Ads and Monetization, self-certified ads SDK, neutral age screen, Better Ads Experiences, kids app ads, child audience, abusive experiences, fake messages, unexpected click areas, Better Ads Standards, Coalition for Better Ads.
 ---
 
 # AdMob policy — diagnosis and fixes
@@ -72,7 +72,10 @@ grep -rniE "webview|iframe|loadUrl" app/src/main
 | **Google Play Ads policy** (separate track) | https://support.google.com/googleplay/android-developer/answer/9857753 |
 | **Google Play Families policies** (Ads and Monetization) | https://support.google.com/googleplay/android-developer/answer/9893335 |
 | Families Self-Certified Ads SDK program | https://support.google.com/googleplay/android-developer/answer/9900633 |
-| Better Ads Experiences | https://support.google.com/googleplay/android-developer/answer/12271244 |
+| Better Ads Experiences (Play) | https://support.google.com/googleplay/android-developer/answer/12271244 |
+| Abusive experiences | https://support.google.com/publisherpolicies/answer/11128079 |
+| Better Ads Standards (policy) | https://support.google.com/publisherpolicies/answer/11127848 |
+| Better Ads Standards (the list itself) | https://www.betterads.org/standards/ |
 | app-ads.txt | https://support.google.com/admob/answer/9363762 |
 
 ---
@@ -748,12 +751,92 @@ or blocks ad serving regardless of a perfect implementation.
 | Enabling dishonest behavior | Tools for deception, hacking, academic cheating |
 | Unsupported languages | Content must be in a supported language |
 | Dishonest declarations | Publisher account information must be accurate |
-| Abusive experiences | Misleading UI: fake system warnings, fake close buttons, auto-redirects |
-| Better Ads Standards | Formats the Coalition for Better Ads found intrusive |
+| Abusive experiences | Misleading UI — see D3 |
+| Better Ads Standards | Intrusive ad formats — see D4 |
 | Spam policies for web search | Applies to any web content tied to the account |
 | Sanctions compliance | Publisher must not be in a sanctioned jurisdiction |
 
-**Fix.** Remove or gate the offending content, then request review. No code change helps.
+**Fix.** Remove or gate the offending content, then request review. No code change helps —
+except for D3 and D4 below, which are implementation problems living in the content section.
+
+---
+
+## D3. Abusive experiences
+
+**Rule, verbatim.**
+
+> "Publishers may not place Google-served ads on screens that contain abusive experiences."
+
+> "Abusive experiences are designed to be misleading. An experience is abusive if it meets any
+> of the conditions listed."
+
+The eight named conditions, verbatim, with the Android form of each:
+
+| Condition | Official wording | What it looks like in an app |
+|---|---|---|
+| **Fake messages** | "Ads or other elements that resemble chat apps, warnings, system dialogs, or other notifications that lead to an ad or landing page when clicked." | A `Snackbar`, `AlertDialog`, or fake toast styled like a system alert whose button opens an ad. A fake "1 new message" badge. |
+| **Unexpected click areas** | "Transparent backgrounds, non-visible page elements, or other typically non-clickable areas that lead to an ad or landing page when clicked." | A transparent `View` over the layout with a click listener. An `alpha="0"` overlay. A `NativeAdView` sized larger than its visible card. |
+| **Misleading site behavior** | "Page features such as scroll bars, play buttons, 'next' arrows, close buttons, or navigation links that lead to an ad or landing page when clicked." | A fake ▶ play button on a static image. A "Next" or "Continue" button that is actually the ad's call to action. A decoy ✕. |
+| **Browser history manipulation** | "Prevents the normal function of the 'Back' button by keeping the user from returning to the previous destination." | An `onBackPressed` override that traps the user, or one that pushes an ad screen instead of finishing. |
+| **Social engineering** | "Ads or content elements that attempt to steal personal information or trick users into sharing personal information." | A fake login or "verify your account" form next to an ad. |
+| **Auto redirect** | "Ads or content elements that auto-redirect the page without user action." | An `Intent` to a Play Store page or browser fired with no tap. |
+| **Mouse pointer** | "Ads or content elements that resemble a moving or clicking mouse pointer that attempt to trick a user into interacting with it." | A drawn cursor, animated hand, or pulsing "tap here" arrow pointing at an ad. |
+| **Malware or unwanted software** | "Ads or content elements that promote, host, or link to malware or unwanted software." | Sideload prompts, APK download links. |
+
+**The single hardest one to catch:** *unexpected click areas*. An ad view laid out larger than
+the artwork it displays creates an invisible tap target. It is also the most common cause of an
+invalid-traffic finding (B1) that looks inexplicable from the code.
+
+**Fix**
+
+```java
+// WRONG — invisible clickable region over the layout
+overlay.setAlpha(0f);
+overlay.setOnClickListener(v -> openAd());
+
+// RIGHT — every clickable region is visible, labelled, and the size of what it looks like
+binding.adCallToAction.setOnClickListener(...);   // the SDK wires this via setCallToActionView
+```
+
+Give the ad card a visible boundary. Never place a click listener on a transparent or
+zero-alpha view. Never draw a ✕, ▶, or "Next" affordance that is not the thing it depicts.
+
+---
+
+## D4. Better Ads Standards
+
+**Rule, verbatim.**
+
+> "You must not place Google-served ads on screens that do not conform to the Better Ads
+> Standards."
+
+The standards come from the Coalition for Better Ads, based on consumer research, not from
+Google. Google adopts them by reference — so the actual list lives at
+`https://www.betterads.org/standards/`.
+
+**Mobile app experiences the Coalition names as disallowed:**
+
+1. Interruptive interstitials
+2. Interruptive video interstitials
+3. Non-skippable video interruptive interstitials
+4. **Video interstitials when opening an app**
+
+That fourth one is the trap: a *video interstitial* on app open is disallowed here, on top of
+AdMob's own ban on launch interstitials (A3) and Play's Better Ads Experiences rule (E3). Three
+separate policies converge on the same mistake. The app open ad format is the only sanctioned
+way to monetize a launch.
+
+"Interruptive" is the operative word throughout — an interstitial that lands mid-task rather
+than at a transition. Same substance as E3, enforced through a different track.
+
+**Mobile web and desktop web** have their own longer lists (pop-ups, prestitials, ad density
+above 30%, flashing animation, auto-playing video with sound, large sticky ads). These apply if
+the app embeds a `WebView` serving your own monetized pages — otherwise ignore them.
+
+**Fix**
+
+Never show a video interstitial at launch. Use `AppOpenAd`. Keep every interstitial on a
+transition boundary, and keep video interstitials skippable.
 
 ---
 
@@ -1010,6 +1093,11 @@ Run these before concluding anything.
 21. **Child audience** — if the app targets or may reach children: no app open ads, one
     placement per screen, everything dismissable in 5 s, self-certified SDKs only, no
     advertising ID, neutral age screen for mixed audiences (E2).
+22. **Invisible tap targets** — no click listener on a transparent, zero-alpha, or
+    larger-than-it-looks view; no ad view sized beyond its visible card (D3).
+23. **Decoy affordances** — no drawn ✕, ▶, "Next", or pointing cursor that is not the control
+    it depicts (D3).
+24. **No video interstitial at launch** — banned by A3, D4, and E3 simultaneously (D4).
 
 # Known false alarms — do not "fix" these
 
