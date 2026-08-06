@@ -8,6 +8,25 @@ description: Diagnose and fix any AdMob, Google Publisher, or Google Play ads po
 Companion to `admob-implementation`, which holds the compliant code templates. This skill
 is the diagnostic side: identify the violation, quote the rule, apply the fix.
 
+## Scope and limits — read this before trusting the catalog
+
+**Covered.** Native **Android** apps using the Google Mobile Ads SDK, under three enforcement
+tracks: AdMob program policies, the Google Publisher Policies and Restrictions, and Google
+Play's own Ads policy.
+
+**Not covered.** AdSense for web, Ad Manager / AdX specifics, iOS-only requirements
+(App Tracking Transparency, SKAdNetwork), mediation partner policies, and Google's advertiser-
+side policies. AdMob and AdSense **share the Google Publisher Policies**, so sections C and D
+transfer to web — but every code fix here is Android, and the AdSense-only rules are absent.
+
+**Not exhaustive, and cannot be.** Google's policy surface spans dozens of pages that change
+without notice. This catalog is a navigation layer over the official sources in Step 2, not a
+replacement for them. Always open the source before acting on an entry.
+
+**Anything not backed by a quote is a judgement call.** Entries carrying a verbatim block quote
+are verified against the linked source. Entries without one are the author's reading. Apply the
+reporting rule at the bottom of this file and say which kind you are relying on.
+
 ## Step 1 — read the warning correctly
 
 AdMob reuses **AdSense web boilerplate** in violation descriptions. The examples inside are
@@ -226,9 +245,15 @@ counter on every screen entry.
 
 **Rule.** Google ads may not overlay navigation items or severely obstruct content.
 
+The rule runs **both ways**. Google Publisher Restrictions names "Ads interfering" as ads
+obscuring content **and content obscuring ads**. App UI covering a banner restricts that
+inventory even though nothing appears in the Policy Center.
+
 **Triggers**
 
 - A banner covering a toolbar, tab bar, or bottom navigation.
+- App UI covering the banner: a sticky footer, snackbar, bottom sheet, or expanded FAB menu
+  drawn over the ad container.
 - An ad pushing content off-screen or blocking a required control.
 - An ad container using `padding` instead of `margin`, shrinking the ad frame.
 - Content that scrolls underneath an anchored ad without bottom inset.
@@ -727,8 +752,24 @@ A different mechanism, easy to mistake for enforcement. Restricted content does 
 app banned; it **narrows the pool of advertisers**, so revenue falls with no warning in the
 Policy Center.
 
-Categories: sexually suggestive content, shocking content, tobacco, recreational drugs,
-alcohol, gambling and games of skill, video game content, and other sensitive events.
+> "If your content is labeled with an inventory restriction, fewer advertising sources will be
+> eligible to bid on it."
+
+**Content restrictions** — sexual content · shocking content · explosives · guns, gun parts and
+related products · other weapons · tobacco · recreational drugs · alcohol sale or misuse ·
+online gambling · prescription drugs · unapproved pharmaceuticals and supplements ·
+**app removed from the Google Play Store**.
+
+That last one matters for Android: a Play removal restricts ad demand on the AdMob side too,
+even after the AdMob Policy Center clears. Play and AdMob problems compound.
+
+**Behavioral restriction** — "Ads interfering": Google-served ads obscuring content, **and
+content obscuring ads**. Note the second direction — it is not in the A-section rules. A
+sticky header, snackbar, or bottom sheet that covers a banner restricts that inventory.
+
+**Video inventory restrictions** — accurate inventory description, supported implementations,
+advertiser value protection, user experience requirements, and Connected TV / digital
+out-of-home requirements. Applies only if the app serves video ad inventory.
 
 **How this shows up.** eCPM collapses on a specific app or ad unit while the Policy Center
 stays clean.
