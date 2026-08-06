@@ -1,6 +1,7 @@
 # admob-policy — a Claude Code skill
 
-Diagnose and fix **any AdMob / Google Publisher policy violation** in a native Android app.
+Diagnose and fix **AdMob, Google Publisher, and Google Play ad policy violations** in a native
+Android app.
 
 AdMob Policy Center warnings are vague, reuse AdSense *web* boilerplate, and never point at a
 line of code. This skill turns a warning into an actionable diff: it names the real rule, quotes
@@ -56,7 +57,9 @@ diagnosing from a screenshot (letterboxing is not distortion; `wrap_content` on 
 breaks the 120x120dp video minimum; AdChoices placement cannot be judged from a screenshot;
 IFRAME / floating-box clauses are web-only).
 
-Every rule links back to its official Google source. Nothing in the catalog is inferred.
+Every entry links back to its official Google source. Entries carrying a verbatim block quote
+are verified against that source; entries without one are the author's reading, and the skill
+tells Claude to say which kind it is relying on when it reports a finding.
 
 ## Install
 
@@ -93,13 +96,23 @@ Or invoke it explicitly:
 /admob-policy
 ```
 
-## Scope
+## Scope and limits
 
-- Native **Android** apps (Java / Kotlin), Google Mobile Ads SDK.
-- Diagnosis and remediation. Compliant code *templates* live in a companion skill,
-  `admob-implementation`.
-- Not legal advice. Google's documentation is the authority; the linked sources are canonical
-  and this skill is a navigation layer over them. Policies change — verify before you ship.
+**Covered.** Native **Android** apps (Java / Kotlin) on the Google Mobile Ads SDK, across three
+enforcement tracks: AdMob program policies, the Google Publisher Policies and Restrictions, and
+Google Play's own Ads policy.
+
+**Not covered.** AdSense for web, Ad Manager / AdX specifics, iOS requirements (App Tracking
+Transparency, SKAdNetwork), mediation partner policies, and advertiser-side policies. AdMob and
+AdSense share the Google Publisher Policies, so the content and privacy sections do transfer to
+web — but every code fix here is Android, and the AdSense-only rules are absent.
+
+**Not exhaustive, and it cannot be.** Google's policy surface spans dozens of pages that change
+without notice. This is a navigation layer over the official sources, not a replacement for
+them. Open the source before acting on any entry.
+
+Diagnosis and remediation only. Compliant code *templates* live in a companion skill,
+`admob-implementation`. Not legal advice.
 
 ## Contributing
 
@@ -127,6 +140,10 @@ MIT — see [LICENSE](LICENSE).
 وسياسة إعلانات Google Play كمسار تنفيذ منفصل تماماً (E).
 
 إضافة إلى Native Validator، وقائمة فحص من 19 نقطة قبل النشر، وقسم "إنذارات كاذبة — لا تُصلحها".
+
+**النطاق وحدوده.** أندرويد فقط. لا تغطي AdSense للويب ولا Ad Manager ولا iOS ولا سياسات
+الوسطاء. وليست شاملة — سطح سياسات Google عشرات الصفحات تتغير دون إشعار، وهذه طبقة تنقّل فوق
+المصادر الرسمية لا بديل عنها. ما عليه اقتباس حرفي محقَّق من مصدره، وما دونه اجتهاد.
 
 **التثبيت:**
 
