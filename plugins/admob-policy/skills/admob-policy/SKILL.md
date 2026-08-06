@@ -1,6 +1,6 @@
 ---
 name: admob-policy
-description: Diagnose and fix any AdMob, Google Publisher, or Google Play ads policy violation in a native Android app — full catalog of Policy Center issues with the concrete code fix for each. Covers Modified ad behavior, accidental clicks, unexpected interstitials, ad density, ads interfering with navigation, inventory value, rewards user choice, invalid traffic, refresh rate limits, incentivized clicks, sub-syndication, app-ads.txt, EU consent, personalized advertising, privacy disclosures, COPPA and child-directed tagging, content policies, Publisher Restrictions (limited ads), and Google Play's separate Ads policy including disruptive and out-of-context ads. Use when an AdMob Policy Center warning arrives, an app is restricted or ads are limited, revenue drops with no warning, a Play listing is flagged, before shipping ad code, or when auditing a banner / interstitial / native / app-open / rewarded implementation. Triggers - AdMob, AdSense policy, Policy Center, Modified ad behavior, policy violation, ads restricted, ad serving limited, accidental clicks, invalid traffic, refresh rate, incentivized clicks, app-ads.txt, AdChoices, NativeAdView, MediaView, AppOpenAd, UMP consent, COPPA, Designed for Families, Google Play ads policy, disruptive ads, out-of-context ads.
+description: Diagnose and fix any AdMob, Google Publisher, or Google Play ads policy violation in a native Android app — full catalog of Policy Center issues with the concrete code fix for each. Covers Modified ad behavior, accidental clicks, unexpected interstitials, ad density, ads interfering with navigation, inventory value, rewards user choice, invalid traffic, refresh rate limits, incentivized clicks, sub-syndication, app-ads.txt, EU consent, personalized advertising, privacy disclosures, COPPA and child-directed tagging, content policies, Publisher Restrictions (limited ads), Google Play's separate Ads policy including disruptive and out-of-context ads, the Families Ads and Monetization requirements, and Better Ads Experiences. Use when an AdMob Policy Center warning arrives, an app is restricted or ads are limited, revenue drops with no warning, a Play listing is flagged, before shipping ad code, or when auditing a banner / interstitial / native / app-open / rewarded implementation. Triggers - AdMob, AdSense policy, Policy Center, Modified ad behavior, policy violation, ads restricted, ad serving limited, accidental clicks, invalid traffic, refresh rate, incentivized clicks, app-ads.txt, AdChoices, NativeAdView, MediaView, AppOpenAd, UMP consent, COPPA, Designed for Families, Google Play ads policy, disruptive ads, out-of-context ads, Families Ads and Monetization, self-certified ads SDK, neutral age screen, Better Ads Experiences, kids app ads, child audience.
 ---
 
 # AdMob policy — diagnosis and fixes
@@ -70,6 +70,9 @@ grep -rniE "webview|iframe|loadUrl" app/src/main
 | AdMob implementation guidance | https://support.google.com/admob/answer/2936217 |
 | Banner refresh rate | https://support.google.com/admob/answer/3245199 |
 | **Google Play Ads policy** (separate track) | https://support.google.com/googleplay/android-developer/answer/9857753 |
+| **Google Play Families policies** (Ads and Monetization) | https://support.google.com/googleplay/android-developer/answer/9893335 |
+| Families Self-Certified Ads SDK program | https://support.google.com/googleplay/android-developer/answer/9900633 |
+| Better Ads Experiences | https://support.google.com/googleplay/android-developer/answer/12271244 |
 | app-ads.txt | https://support.google.com/admob/answer/9363762 |
 
 ---
@@ -670,10 +673,14 @@ path:
 
 Keep this check in one place so no format bypasses it.
 
-### C2. Child-directed apps and families
+### C2. Child-directed apps and families — the AdMob side
 
-**Rule.** Apps directed at children must tag ad requests. AdMob blocks non-self-certified
-ad sources for such apps. **Designed for Families apps cannot use app open ads.**
+**Rule.** Apps directed at children must tag ad requests. AdMob blocks non-self-certified ad
+sources for such apps. **Designed for Families apps cannot use app open ads**, and apps
+complying with the Families Policy are not eligible for the format.
+
+Publishers using mediation "must configure mediation groups to only use Families self-certified
+ads SDKs" — the developer carries that responsibility, not the ad network.
 
 **Fix**
 
@@ -686,6 +693,10 @@ MobileAds.setRequestConfiguration(config);
 ```
 
 Set this **before** the first ad request, in the Application class.
+
+This is only the AdMob half. The Play half — format bans, the 5-second close rule, the
+self-certified SDK requirement, the neutral age screen — is **E2**, and it is stricter. Read
+both.
 
 ### C3. The rest of the privacy-related policies
 
@@ -832,6 +843,128 @@ Play policy violation on its own.
 
 ---
 
+### E2. Families Ads and Monetization — the strictest rule set
+
+Applies to any app whose target audience **includes children**, whether or not it joined the
+Designed for Families program. These rules **override** the general limits above — where they
+conflict, the stricter number wins.
+
+**Rules, verbatim.**
+
+> "Disruptive monetization and advertising, including monetization and advertising that take up
+> the entire screen or interfere with normal use and do not provide a clear means to dismiss
+> the ad" — prohibited.
+
+> Monetization and advertising that interfere with normal app use or game play, **including
+> rewarded or opt-in ads, that are not closeable after 5 seconds** — prohibited.
+
+> "Interstitial monetization and advertising displayed immediately upon app launch" —
+> prohibited.
+
+> "Multiple ad placements on a page (for example, banner ads that show multiple offers in one
+> placement or displaying more than one banner or video ad is not allowed)."
+
+> Ads "not clearly distinguishable from your app content, such as offerwalls and other
+> immersive ads experiences" — prohibited.
+
+> Apps must "use only Google Play Families Self-Certified Ads SDKs to display ads" to children
+> or users of unknown age. Mixed-audience apps need "a neutral age screen" so that "ads shown
+> to children come exclusively from Google Play self-certified ads SDK versions."
+
+Ads must not transmit the **advertising ID** for children or users of unknown age.
+
+**App open ads are not permitted.** Apps in the Designed for Families program cannot use the
+format, and apps complying with the Families Policy are not eligible for it.
+
+Prohibited **ad content** for this audience: alcohol, tobacco, controlled substances; simulated
+gambling, contests or sweepstakes; sexual, sexually suggestive and mature content; violent and
+graphic content not appropriate for children.
+
+In-app purchases must draw "a distinction between the use of virtual game coins versus
+real-life money."
+
+**Where the numbers differ from the general rules**
+
+| Rule | General | Families |
+|---|---|---|
+| Full-screen ad close button | after 15 s | **after 5 s**, rewarded included |
+| Ads per screen | one banner, no stacking | **one placement, one offer** |
+| App open ad | allowed over the loading screen | **not permitted** |
+| Ad SDK | any | **self-certified only** |
+| Personalized ads | consent-gated | **off entirely** |
+
+**Fix**
+
+```java
+// Application.onCreate, BEFORE the first ad request
+MobileAds.setRequestConfiguration(
+        new RequestConfiguration.Builder()
+                .setTagForChildDirectedTreatment(
+                        RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
+                .setTagForUnderAgeOfConsent(
+                        RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE)
+                .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
+                .build());
+```
+
+Then, in order:
+
+1. Delete every `AppOpenAd` call path from a Families app. There is no compliant configuration.
+2. If mediation is on, configure the mediation groups to use **only** Families self-certified
+   ad SDKs — the developer carries this responsibility, not the network.
+3. For a mixed audience, add a neutral age screen (a date-of-birth field with no leading
+   language) and apply the child tags only to the child branch, per session.
+4. Confirm no screen carries more than one ad placement.
+5. Confirm every full-screen ad you do show is dismissable within 5 seconds.
+
+---
+
+### E3. Better Ads Experiences — Play's unexpectedness rule
+
+A distinct Play policy, separate from both the Ads policy and Families.
+
+**Rules, verbatim.**
+
+> The policy targets "unexpected full screen interstitials, typically when the user has chosen
+> to do something else."
+
+> "You can show interstitial ads at natural breaks in transition, such as at the end of the
+> game level or content section."
+
+> "When users explicitly express that they want to engage with an ad, there is no concern with
+> unexpectedness."
+
+> "You can show a static interstitial ad after your app has loaded."
+
+**Named violations.** An ad at the **beginning** of a game level. An ad at the **beginning** of
+a content segment.
+
+**The distinction that matters.** Not frequency — *timing*. An interstitial after a score
+screen or at the end of a chapter is fine. The identical ad, at the same rate, placed at the
+*start* of the next level is a violation. Beginning versus end is the whole rule.
+
+**Fix**
+
+Move every interstitial trigger to the completion side of a transition:
+
+```java
+// WRONG — fires as the new content opens
+void openChapter(int index) {
+    adManager.showInterstitial(this, adUnitId, () -> render(index));
+}
+
+// RIGHT — fires when the user finishes, before they choose what is next
+void onChapterFinished(int index) {
+    if (clickAdController.onItemClicked()) {
+        adManager.showInterstitial(this, adUnitId, this::showChapterList);
+    } else {
+        showChapterList();
+    }
+}
+```
+
+---
+
 # Verify with Google's own tool, not guesswork
 
 Native Validator ships in the SDK (**19.2.0+**), is **enabled by default**, and shows an
@@ -872,6 +1005,11 @@ Run these before concluding anything.
 17. **System insets** — no ad container under the status, navigation, or gesture bar.
 18. **Play listing** — "Contains ads" declared; privacy policy names Google as an ad partner.
 19. **app-ads.txt** — published and verified in the AdMob dashboard.
+20. **Interstitial side of the transition** — fires at the *end* of a section, never at the
+    start of the next one (E3).
+21. **Child audience** — if the app targets or may reach children: no app open ads, one
+    placement per screen, everything dismissable in 5 s, self-certified SDKs only, no
+    advertising ID, neutral age screen for mixed audiences (E2).
 
 # Known false alarms — do not "fix" these
 
@@ -891,6 +1029,11 @@ Run these before concluding anything.
   seasonal demand, not a hidden violation. Do not refactor working ad code chasing it.
 - **Rewarded ads are not "incentivized clicks."** B3 bans paying for ordinary impressions;
   `RewardedAd` is a sanctioned format with its own rules (A8).
+- **An interstitial rate that passes A4 can still fail E3.** Better Ads Experiences is about
+  *timing*, not frequency. Do not reduce the rate to fix a placement problem — move the trigger
+  to the end of the section.
+- **Rewarded ads are exempt from the general unexpectedness rule but not from Families.** If the
+  audience includes children, a rewarded ad must still be closeable after 5 seconds (E2).
 
 # Reporting rule
 
