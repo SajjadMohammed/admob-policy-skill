@@ -1,4 +1,4 @@
-﻿# admob-policy â€” a Claude Code skill
+# admob-policy — a Claude Code skill
 
 Diagnose and fix **AdMob, Google Publisher, and Google Play ad policy violations** in a native
 Android app.
@@ -23,10 +23,10 @@ Built from a real remediation of a "Modified ad behavior" enforcement on a publi
 | A5 | Ads interfering with app functionality |
 | A6 | App open ad misuse |
 | A7 | Native ad violations |
-| A8 | Rewards implementation â€” user choice |
+| A8 | Rewards implementation — user choice |
 | A9 | Deceptive ad implementation / unclear labeling |
 | A10 | Ad-to-content ratio |
-| A11 | Inventory value â€” ads on screens without content |
+| A11 | Inventory value — ads on screens without content |
 | A12 | Out-of-context / replicated content |
 
 **B. Traffic and account behavior**
@@ -37,9 +37,9 @@ Built from a real remediation of a "Modified ad behavior" enforcement on a publi
 | B2 | Refresh rate outside the permitted range |
 | B3 | Incentivized or compensated clicks |
 | B4 | Framing, sub-syndication, and account sharing |
-| B5 | Authorized inventory â€” app-ads.txt |
+| B5 | Authorized inventory — app-ads.txt |
 
-**C. Privacy and regulatory** â€” EU user consent (UMP), child-directed apps and Designed for
+**C. Privacy and regulatory** — EU user consent (UMP), child-directed apps and Designed for
 Families, plus the remaining Publisher Policy privacy items: personalized advertising, privacy
 disclosures, identifying users, device and location data, COPPA.
 
@@ -48,25 +48,25 @@ are really implementation problems:
 
 | # | Topic |
 |---|---|
-| D2 | Publisher Restrictions â€” the separate mechanism that silently narrows advertiser demand instead of raising a warning |
-| D3 | Abusive experiences â€” all eight named conditions (fake messages, unexpected click areas, misleading affordances, back-button trapping, social engineering, auto-redirect, fake pointers, malware) mapped to their Android form |
-| D4 | Better Ads Standards â€” the Coalition's four disallowed mobile-app experiences |
+| D2 | Publisher Restrictions — the separate mechanism that silently narrows advertiser demand instead of raising a warning |
+| D3 | Abusive experiences — all eight named conditions (fake messages, unexpected click areas, misleading affordances, back-button trapping, social engineering, auto-redirect, fake pointers, malware) mapped to their Android form |
+| D4 | Better Ads Standards — the Coalition's four disallowed mobile-app experiences |
 
-**E. Google Play â€” three separate enforcement tracks.** The gap most publishers miss: AdMob and
+**E. Google Play — three separate enforcement tracks.** The gap most publishers miss: AdMob and
 Play enforce independently, so an app that is perfectly AdMob-compliant can still be removed
 from Play with a clean Policy Center.
 
 | # | Track |
 |---|---|
-| E1 | Play Ads policy â€” disruptive ads, out-of-context ads, 15-second close, device-button interference, "Contains ads" declaration |
-| E2 | Families Ads and Monetization â€” the strictest rule set: no app open ads, one placement per screen, 5-second close including rewarded, self-certified SDKs only, neutral age screen |
-| E3 | Better Ads Experiences â€” timing, not frequency: an interstitial at the *end* of a section is fine, the same ad at the *start* of the next one is a violation |
+| E1 | Play Ads policy — disruptive ads, out-of-context ads, 15-second close, device-button interference, "Contains ads" declaration |
+| E2 | Families Ads and Monetization — the strictest rule set: no app open ads, one placement per screen, 5-second close including rewarded, self-certified SDKs only, neutral age screen |
+| E3 | Better Ads Experiences — timing, not frequency: an interstitial at the *end* of a section is fine, the same ad at the *start* of the next one is a violation |
 
 E2 includes a table of every number that differs from the general rules, so a kids app is not
 audited against the wrong limit.
 
 Plus: Native Validator setup, a 24-point pre-ship audit checklist, and a
-**"known false alarms â€” do not fix these"** section covering mistakes that are easy to make when
+**"known false alarms — do not fix these"** section covering mistakes that are easy to make when
 diagnosing from a screenshot (letterboxing is not distortion; `wrap_content` on a `MediaView`
 breaks the 120x120dp video minimum; AdChoices placement cannot be judged from a screenshot;
 IFRAME / floating-box clauses are web-only).
@@ -77,7 +77,7 @@ tells Claude to say which kind it is relying on when it reports a finding.
 
 ## Install
 
-### As a plugin (recommended â€” stays updatable)
+### As a plugin (recommended — stays updatable)
 
 In Claude Code:
 
@@ -91,7 +91,7 @@ In Claude Code:
 Copy the skill folder into your skills directory:
 
 ```bash
-# user-level â€” available in every project
+# user-level — available in every project
 git clone https://github.com/SajjadMohammed/admob-policy-skill
 cp -r admob-policy-skill/plugins/admob-policy/skills/admob-policy ~/.claude/skills/
 ```
@@ -102,7 +102,7 @@ Project-level instead: copy it to `.claude/skills/` inside the repo.
 
 The skill activates on its own when you mention an AdMob policy problem:
 
-> I got a "Modified ad behavior" warning from AdMob â€” check my app and fix it
+> I got a "Modified ad behavior" warning from AdMob — check my app and fix it
 
 Or invoke it explicitly:
 
@@ -119,7 +119,7 @@ Google Play's own Ads policy.
 **Not covered.** AdSense for web, Ad Manager / AdX specifics, iOS requirements (App Tracking
 Transparency, SKAdNetwork), mediation partner policies, and advertiser-side policies. AdMob and
 AdSense share the Google Publisher Policies, so the content and privacy sections do transfer to
-web â€” but every code fix here is Android, and the AdSense-only rules are absent.
+web — but every code fix here is Android, and the AdSense-only rules are absent.
 
 **Not exhaustive, and it cannot be.** Google's policy surface spans dozens of pages that change
 without notice. This is a navigation layer over the official sources, not a replacement for
@@ -132,38 +132,38 @@ Diagnosis and remediation only. Compliant code *templates* live in a companion s
 
 Found a Policy Center warning this catalog does not cover, or a fix that turned out wrong? Open
 an issue with the **exact warning text** from the Policy Center and the official documentation
-URL that governs it. Rules go in verbatim, with a source â€” no paraphrase, no guesses.
+URL that governs it. Rules go in verbatim, with a source — no paraphrase, no guesses.
 
 ## License
 
-MIT â€” see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
 
 ---
 
-## ط¨ط§ظ„ط¹ط±ط¨ظٹط©
+## بالعربية
 
-ظ…ظ‡ط§ط±ط© ظ„ظ€ Claude Code ظ„طھط´ط®ظٹطµ ظˆط­ظ„ ظ…ط®ط§ظ„ظپط§طھ ط³ظٹط§ط³ط§طھ AdMob ظپظٹ طھط·ط¨ظٹظ‚ط§طھ ط£ظ†ط¯ط±ظˆظٹط¯.
+مهارة لـ Claude Code لتشخيص وحل مخالفات سياسات AdMob في تطبيقات أندرويد.
 
-طھط­ط°ظٹط±ط§طھ ظ…ط±ظƒط² ط§ظ„ط³ظٹط§ط³ط§طھ ظپظٹ AdMob ظ…ط¨ظ‡ظ…ط© ظˆطھط³طھط®ط¯ظ… ظ†طµظˆطµط§ظ‹ ظ…ظ†ط³ظˆط®ط© ظ…ظ† AdSense ط§ظ„ط®ط§طµط© ط¨ط§ظ„ظˆظٹط¨طŒ ظˆظ„ط§ طھط´ظٹط±
-ط¥ظ„ظ‰ ظ…ظˆط¶ط¹ ط§ظ„ط®ط·ط£ ظپظٹ ط§ظ„ظƒظˆط¯. ظ‡ط°ظ‡ ط§ظ„ظ…ظ‡ط§ط±ط© طھط­ظˆظ‘ظ„ ط§ظ„طھط­ط°ظٹط± ط¥ظ„ظ‰ طھط¹ط¯ظٹظ„ ظ…ظ„ظ…ظˆط³: طھط­ط¯ط¯ ط§ظ„ظ‚ط§ط¹ط¯ط© ط§ظ„ط­ظ‚ظٹظ‚ظٹط©طŒ
-طھظ‚طھط¨ط³ظ‡ط§ ط¨ظ†طµظ‡ط§ ظ…ظ† طھظˆط«ظٹظ‚ Google ط§ظ„ط±ط³ظ…ظٹطŒ طھظˆط¶ظ‘ط­ ظ…ط§ ط§ظ„ط°ظٹ ظٹظڈط·ظ„ظ‚ظ‡ط§ ظپظٹ ظƒظˆط¯ ط£ظ†ط¯ط±ظˆظٹط¯طŒ ظˆطھط¹ط·ظٹ ط§ظ„ط­ظ„.
+تحذيرات مركز السياسات في AdMob مبهمة وتستخدم نصوصاً منسوخة من AdSense الخاصة بالويب، ولا تشير
+إلى موضع الخطأ في الكود. هذه المهارة تحوّل التحذير إلى تعديل ملموس: تحدد القاعدة الحقيقية،
+تقتبسها بنصها من توثيق Google الرسمي، توضّح ما الذي يُطلقها في كود أندرويد، وتعطي الحل.
 
-طھط؛ط·ظٹ: ط§ظ„طھظ†ظپظٹط° ظˆط§ظ„ظ…ظˆط¶ط¹ (A1â€“A12)طŒ ط§ظ„ط­ط±ظƒط© ظˆط§ظ„ط³ظ„ظˆظƒ â€” ط§ظ„ط­ط±ظƒط© ط؛ظٹط± ط§ظ„طµط§ظ„ط­ط© ظˆظ…ط¹ط¯ظ‘ظ„ ط§ظ„طھط­ط¯ظٹط« ظˆط§ظ„ظ†ظ‚ط±ط§طھ
-ط§ظ„ظ…ط­ظپظژظ‘ط²ط© ظˆط§ظ„طھظˆط²ظٹط¹ ط§ظ„ظپط±ط¹ظٹ ظˆ app-ads.txt (B1â€“B5)طŒ ط§ظ„ط®طµظˆطµظٹط© ظˆط§ظ„طھظ†ط¸ظٹظ… â€” ظ…ظˆط§ظپظ‚ط© ط§ظ„ط§طھط­ط§ط¯ ط§ظ„ط£ظˆط±ظˆط¨ظٹ
-ظˆط§ظ„طھط·ط¨ظٹظ‚ط§طھ ط§ظ„ظ…ظˆط¬ظ‘ظ‡ط© ظ„ظ„ط£ط·ظپط§ظ„ ظˆط¨ظ‚ظٹط© ط¨ظ†ظˆط¯ ط§ظ„ط®طµظˆطµظٹط© (C1â€“C3)طŒ ط³ظٹط§ط³ط§طھ ط§ظ„ظ…ط­طھظˆظ‰ ظˆظ‚ظٹظˆط¯ ط§ظ„ظ†ط§ط´ط±ظٹظ† (DطŒ D2)طŒ
-ظˆظ…ط³ط§ط±ط§طھ Google Play ط§ظ„ط«ظ„ط§ط«ط© ط§ظ„ظ…ظ†ظپطµظ„ط© طھظ…ط§ظ…ط§ظ‹ ط¹ظ† AdMob â€” ط³ظٹط§ط³ط© ط§ظ„ط¥ط¹ظ„ط§ظ†ط§طھطŒ ظˆظ…طھط·ظ„ط¨ط§طھ Families Ads
-and Monetization ط§ظ„ط£ط´ط¯ طµط±ط§ظ…ط©طŒ ظˆ Better Ads Experiences (E1â€“E3).
+تغطي: التنفيذ والموضع (A1–A12)، الحركة والسلوك — الحركة غير الصالحة ومعدّل التحديث والنقرات
+المحفَّزة والتوزيع الفرعي و app-ads.txt (B1–B5)، الخصوصية والتنظيم — موافقة الاتحاد الأوروبي
+والتطبيقات الموجّهة للأطفال وبقية بنود الخصوصية (C1–C3)، سياسات المحتوى وقيود الناشرين
+والتجارب المسيئة ومعايير Better Ads (D1–D4)، ومسارات Google Play الثلاثة المنفصلة تماماً عن
+AdMob — سياسة الإعلانات، ومتطلبات Families Ads and Monetization الأشد صرامة،
+و Better Ads Experiences (E1–E3).
 
-ط¥ط¶ط§ظپط© ط¥ظ„ظ‰ Native ValidatorطŒ ظˆظ‚ط§ط¦ظ…ط© ظپط­طµ ظ…ظ† 21 ظ†ظ‚ط·ط© ظ‚ط¨ظ„ ط§ظ„ظ†ط´ط±طŒ ظˆظ‚ط³ظ… "ط¥ظ†ط°ط§ط±ط§طھ ظƒط§ط°ط¨ط© â€” ظ„ط§ طھظڈطµظ„ط­ظ‡ط§".
+إضافة إلى Native Validator، وقائمة فحص من 24 نقطة قبل النشر، وقسم "إنذارات كاذبة — لا تُصلحها".
 
-**ط§ظ„ظ†ط·ط§ظ‚ ظˆط­ط¯ظˆط¯ظ‡.** ط£ظ†ط¯ط±ظˆظٹط¯ ظپظ‚ط·. ظ„ط§ طھط؛ط·ظٹ AdSense ظ„ظ„ظˆظٹط¨ ظˆظ„ط§ Ad Manager ظˆظ„ط§ iOS ظˆظ„ط§ ط³ظٹط§ط³ط§طھ
-ط§ظ„ظˆط³ط·ط§ط،. ظˆظ„ظٹط³طھ ط´ط§ظ…ظ„ط© â€” ط³ط·ط­ ط³ظٹط§ط³ط§طھ Google ط¹ط´ط±ط§طھ ط§ظ„طµظپط­ط§طھ طھطھط؛ظٹط± ط¯ظˆظ† ط¥ط´ط¹ط§ط±طŒ ظˆظ‡ط°ظ‡ ط·ط¨ظ‚ط© طھظ†ظ‚ظ‘ظ„ ظپظˆظ‚
-ط§ظ„ظ…طµط§ط¯ط± ط§ظ„ط±ط³ظ…ظٹط© ظ„ط§ ط¨ط¯ظٹظ„ ط¹ظ†ظ‡ط§. ظ…ط§ ط¹ظ„ظٹظ‡ ط§ظ‚طھط¨ط§ط³ ط­ط±ظپظٹ ظ…ط­ظ‚ظژظ‘ظ‚ ظ…ظ† ظ…طµط¯ط±ظ‡طŒ ظˆظ…ط§ ط¯ظˆظ†ظ‡ ط§ط¬طھظ‡ط§ط¯.
+**النطاق وحدوده.** أندرويد فقط. لا تغطي AdSense للويب ولا Ad Manager ولا iOS ولا سياسات
+الوسطاء. وليست شاملة — سطح سياسات Google عشرات الصفحات تتغير دون إشعار، وهذه طبقة تنقّل فوق
+المصادر الرسمية لا بديل عنها. ما عليه اقتباس حرفي محقَّق من مصدره، وما دونه اجتهاد.
 
-**ط§ظ„طھط«ط¨ظٹطھ:**
+**التثبيت:**
 
 ```
 /plugin marketplace add SajjadMohammed/admob-policy-skill
 /plugin install admob-policy@admob-skills
 ```
-
