@@ -479,8 +479,12 @@ card and the call-to-action while leaving the badge on a theme attribute leaves 
 half-open: the ad's own disclosure is still dressed as app furniture. Same for a `RatingBar`
 tinted `?attr/colorSecondary`, or any accent inside the card that the app uses elsewhere.
 
-**Do not** also change corner radius, elevation, or margins. Colour separation satisfies the
-rule; changing the geometry makes the list look broken for no policy gain.
+Colour is the load-bearing signal — it satisfies the rule on its own, and no policy line names
+corner radius, elevation, or spacing. A **small** shape difference on top of it is free extra
+separation and worth taking: an ad card at 8dp corner radius next to content cards at 16dp
+reads as a different object without looking out of place. What to avoid is geometry that breaks
+the list — a square-cornered card among rounded ones, a much larger elevation, or margins that
+no longer line up. Separate the ad; do not dismantle the layout.
 
 **How to pick the hue.** List the app's identity colours — primary, secondary, and any accent
 used on buttons or navigation. Choose the ad hue outside that set. A cool neutral grey works

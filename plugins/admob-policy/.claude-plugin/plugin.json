@@ -1,6 +1,6 @@
 {
   "name": "admob-policy",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Full catalog of AdMob, Google Publisher, and Google Play ads policy violations with the concrete Android code fix for each: Modified ad behavior, accidental clicks, unexpected interstitials, ad density, inventory value, rewards user choice, invalid traffic, refresh rate limits, incentivized clicks, app-ads.txt, EU consent, privacy disclosures, COPPA / Designed for Families, content policies, abusive experiences, Better Ads Standards, Publisher Restrictions, and Google Play's three separate enforcement tracks: the Ads policy, Families Ads and Monetization, and Better Ads Experiences. Also covers the re-review process: what to verify before requesting a review, and how to read a repeat rejection that arrives with the same evidence.",
   "author": {
     "name": "SajjadMohammed",
