@@ -472,12 +472,17 @@ Define the tokens once, with a night variant, in a hue the app does not use anyw
 <color name="ad_badge_text">#10151F</color>
 ```
 
-**The badge is part of the trap, and it is the one most often missed.** A badge wearing
-`?attr/colorPrimaryContainer` looks like a chip, a tag, or a category label from the app's own
-design system — which is precisely what "Camouflaging the Ad attribution" describes. Fixing the
-card and the call-to-action while leaving the badge on a theme attribute leaves the violation
-half-open: the ad's own disclosure is still dressed as app furniture. Same for a `RatingBar`
-tinted `?attr/colorSecondary`, or any accent inside the card that the app uses elsewhere.
+**The badge — a Risk, not a quoted Violation.** A badge wearing `?attr/colorPrimaryContainer`
+looks like a chip or a category label from the app's own design system, which weakens the
+separation the card and button just established. But no policy line says the badge's *colour*
+is a violation. "Camouflaging the Ad attribution" describes hiding or disguising the disclosure;
+a badge that reads "Ad", meets the 15px minimum, and has adequate contrast **is** disclosed, whatever
+hue it wears. Move it off the theme attribute as cheap hardening, and label it Risk when you
+report it. Same for a `RatingBar` tinted `?attr/colorSecondary` — that one is cleanup, not
+policy at all.
+
+The card background and the call-to-action are the parts backed by verbatim rules. Do not let
+badge tinting delay shipping those.
 
 Colour is the load-bearing signal — it satisfies the rule on its own, and no policy line names
 corner radius, elevation, or spacing. A **small** shape difference on top of it is free extra
@@ -1219,9 +1224,9 @@ Run these before concluding anything.
     is the specific one Google names (A7).
 26. **Ad card versus content card** — diff the two layouts. Identical background, stroke, and
     accent colour means the ad is not distinguished (A7).
-27. **The badge itself** — the "Ad" label and any accent inside the card (rating stars, chips)
-    must not wear a theme attribute either. Fixing the card and button but leaving the badge on
-    `?attr/colorPrimaryContainer` leaves the disclosure dressed as app furniture (A7).
+27. **The badge itself** — the "Ad" label and any accent inside the card. Check the disclosure
+    is present, ≥ 15px, and readable; that part is the rule. Moving it off
+    `?attr/colorPrimaryContainer` is hardening, report it as Risk (A7).
 28. **The reviewed build is the live build** — before requesting a review, confirm the release
     is *Live* on Play at 100% rollout. Identical screenshots on a repeat rejection means the
     old binary was reviewed, not that the fix failed.
