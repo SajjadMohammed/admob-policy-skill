@@ -918,8 +918,19 @@ belongs in the same audit.
 
 ### C1. EU user consent
 
-**Rule.** Consent is required for cookies and mobile ad identifiers where legally mandated —
-the EEA, UK, and Switzerland — per the ePrivacy Directive.
+**Rule, verbatim.** The policy page carries one operative sentence and no more:
+
+> "You must obtain consent to use cookies or mobile ad identifiers for those purposes where
+> legally required, such as in the UK, Switzerland, and certain countries in the European
+> Economic Area (EEA) per the ePrivacy Directive."
+
+**A missing consent gate is a Risk, not a Violation — report it as one.** The policy page does
+*not* say ad requests must be withheld until consent resolves. That requirement comes from the
+UMP implementation guidance (`canRequestAds()`), which is a *developer guide*, not a policy page
+— the same guidance-versus-policy split the reporting rule at the bottom of this file describes.
+An app that fires a request before UMP resolves has broken an implementation contract whose
+consequence is legal (ePrivacy) rather than an AdMob line you can quote back. Fix it; do not
+label it Violation, and do not claim the policy page says something it does not.
 
 **Fix**
 
