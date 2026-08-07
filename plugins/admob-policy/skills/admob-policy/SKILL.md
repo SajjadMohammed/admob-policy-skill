@@ -324,6 +324,9 @@ inventory even though nothing appears in the Policy Center.
   drawn over the ad container.
 - An ad pushing content off-screen or blocking a required control.
 - An ad container using `padding` instead of `margin`, shrinking the ad frame.
+- **An adaptive banner sized from the window width while its container is narrower** — see
+  the ancestor-padding trap below. The most common form, and invisible to a grep of the
+  container's own attributes.
 - Content that scrolls underneath an anchored ad without bottom inset.
 
 **Fix**
@@ -348,6 +351,66 @@ Anchor the ad **outside** the content region, never on top of it:
 
 Use `layout_margin`, never `android:padding`, on ad containers — padding restricts the ad
 frame and is reported as "resizing ad frames".
+
+**Fix — the ancestor-padding trap**
+
+The container can be perfectly clean and the banner still gets clipped, because the width
+mismatch is not in the container's attributes at all. Google's own adaptive-banner sample
+measures the **window**:
+
+```java
+// The sample everyone copies. Correct only when the container spans the full screen.
+widthPixels = activity.getWindowManager().getCurrentWindowMetrics().getBounds().width();
+int adWidth = (int) (widthPixels / density);
+return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth);
+```
+
+Drop that container inside a settings screen, a scroll view, or any card list whose root
+carries `paddingHorizontal="20dp"`, and the SDK serves a creative 40dp wider than the space it
+has. The result is a banner clipped on both sides — a restricted ad frame, reported the same
+way as container padding.
+
+**Why an audit misses it.** `grep padding` against the ad container returns nothing: the
+container has `layout_width="match_parent"` and a margin, exactly as the guidance says. The
+padding lives on an ancestor, often hundreds of lines away in the file, and `match_parent`
+silently resolves to the *narrowed* parent width. Nothing in the ad code or the ad layout
+looks wrong.
+
+Measure the container, not the window:
+
+```java
+private AdSize getBannerAdSize(Activity activity, ViewGroup adContainer) {
+    float widthPixels = adContainer != null ? adContainer.getWidth() : 0;
+    if (widthPixels <= 0) {                       // fallback: called before first layout
+        widthPixels = activity.getWindowManager().getCurrentWindowMetrics().getBounds().width();
+    }
+    float density = activity.getResources().getDisplayMetrics().density;
+    return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+            activity, (int) (widthPixels / density));
+}
+```
+
+`getWidth()` is 0 until the first layout pass, so defer the request rather than falling back:
+
+```java
+if (adContainer.getWidth() == 0) {
+    if (bannerRequestPending) return;   // container stays childless while waiting —
+    bannerRequestPending = true;        // without this flag, a "load if missing" helper
+    adContainer.post(() -> {            // fires a second request for the same slot
+        bannerRequestPending = false;
+        if (isActivityDead()) return;
+        loadBannerAd(adContainer, adUnitId);
+    });
+    return;
+}
+```
+
+Defer **before** constructing the `AdView`. Sizing a loaded ad view afterwards is A1
+(*Modified ad behavior*) — a second violation on top of this one.
+
+**Verify on a device, not in the layout editor.** Open every screen carrying a banner and
+check the ad's edges line up with the content cards beside it. Clipping is obvious on screen
+and invisible in a diff.
 
 ---
 
@@ -1278,7 +1341,14 @@ Run these before concluding anything.
 3. **App open over banners** — is the resumed screen carrying a banner?
 4. **Duplicate ad managers** — more than one registering lifecycle callbacks.
 5. **Ad view mutation** — any `setLayoutParams` on an ad view after load.
-6. **Container padding** — convert to margin.
+6. **Ad frame width** — two separate checks, both under A5:
+   - *Container padding* — convert to margin.
+   - *Banner width versus container width* — does the size calculation measure the **window**
+     while the container sits inside a padded ancestor? Grep the ad code for
+     `getCurrentWindowMetrics` / `displayMetrics.widthPixels`, then walk **up** the container's
+     layout to the root looking for `paddingHorizontal` / `paddingStart` / `paddingEnd`. Any
+     hit means a clipped banner. The container's own attributes are clean in this case — the
+     mismatch is always in an ancestor (A5, ancestor-padding trap).
 7. **Lifecycle forwarding** — every banner host forwards pause/resume/destroy.
 8. **Native ad destruction** — `nativeAd.destroy()` on screen death.
 9. **Interstitial cadence and trigger** — not on launch/exit, not back-to-back, ≥ 1 per 2 actions.
