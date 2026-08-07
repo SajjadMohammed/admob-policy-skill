@@ -441,6 +441,11 @@ It looks like good practice. It is the violation.
     app:cardBackgroundColor="@color/ad_card_surface"
     app:strokeColor="@color/ad_card_stroke">
 
+    <TextView
+        android:id="@+id/ad_badge"
+        android:background="@color/ad_badge_background"
+        android:textColor="@color/ad_badge_text" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/ad_call_to_action"
         android:backgroundTint="@color/ad_cta_background"
@@ -455,13 +460,24 @@ Define the tokens once, with a night variant, in a hue the app does not use anyw
 <color name="ad_card_stroke">#C9D2DD</color>
 <color name="ad_cta_background">#37475F</color>
 <color name="ad_cta_text">#FFFFFF</color>
+<color name="ad_badge_background">#37475F</color>
+<color name="ad_badge_text">#FFFFFF</color>
 
 <!-- values-night/colors.xml -->
 <color name="ad_card_surface">#23262C</color>
 <color name="ad_card_stroke">#3C424C</color>
 <color name="ad_cta_background">#7E93B8</color>
 <color name="ad_cta_text">#10151F</color>
+<color name="ad_badge_background">#7E93B8</color>
+<color name="ad_badge_text">#10151F</color>
 ```
+
+**The badge is part of the trap, and it is the one most often missed.** A badge wearing
+`?attr/colorPrimaryContainer` looks like a chip, a tag, or a category label from the app's own
+design system — which is precisely what "Camouflaging the Ad attribution" describes. Fixing the
+card and the call-to-action while leaving the badge on a theme attribute leaves the violation
+half-open: the ad's own disclosure is still dressed as app furniture. Same for a `RatingBar`
+tinted `?attr/colorSecondary`, or any accent inside the card that the app uses elsewhere.
 
 **Do not** also change corner radius, elevation, or margins. Colour separation satisfies the
 rule; changing the geometry makes the list look broken for no policy gain.
@@ -1199,6 +1215,12 @@ Run these before concluding anything.
     is the specific one Google names (A7).
 26. **Ad card versus content card** — diff the two layouts. Identical background, stroke, and
     accent colour means the ad is not distinguished (A7).
+27. **The badge itself** — the "Ad" label and any accent inside the card (rating stars, chips)
+    must not wear a theme attribute either. Fixing the card and button but leaving the badge on
+    `?attr/colorPrimaryContainer` leaves the disclosure dressed as app furniture (A7).
+28. **The reviewed build is the live build** — before requesting a review, confirm the release
+    is *Live* on Play at 100% rollout. Identical screenshots on a repeat rejection means the
+    old binary was reviewed, not that the fix failed.
 
 # Known false alarms — do not "fix" these
 
@@ -1223,6 +1245,52 @@ Run these before concluding anything.
   to the end of the section.
 - **Rewarded ads are exempt from the general unexpectedness rule but not from Families.** If the
   audience includes children, a rewarded ad must still be closeable after 5 seconds (E2).
+
+# After the fix — how the re-review actually works
+
+Fixing the code is half the job. Most repeat failures are not a missed violation; they are a
+review run against a build that does not contain the fix.
+
+Source: [Fix policy issues that affect ad serving](https://support.google.com/admob/answer/10448709)
+
+> "If you're requesting a review because you've fixed issues in a new version of your app, make
+> sure you **upload the new version of your app to your respective app store before you request
+> a review**."
+
+**What that means in practice.** "Uploaded to Play Console" is not "on the app store."
+A release sits in *In review*, then *Rolling out*, before it is *Live*. A staged rollout at 20%
+is live for one user in five. If the review lands while the store is still serving the old
+binary, the reviewer sees the old binary — and the rejection comes back with **the same
+screenshots as the first time**, because the evidence never changed.
+
+**The tell.** Identical screenshots plus a generic policy link
+([answer/48182](https://support.google.com/admob/answer/48182) is the AdSense Program Policies
+boilerplate, sent to everyone and pointing at nothing specific) means the reviewer found nothing
+new to say. Read that as *wrong build reviewed*, not *your fix is insufficient* — check the store
+before touching the code again.
+
+**Before requesting a review**
+
+1. Play Console → Production → the release status reads **Live**, not *In review* or *Pending
+   publication*.
+2. Rollout is at **100%**, not staged.
+3. The Play store listing, opened from a device that has never installed the app, shows the new
+   version.
+4. Only then click **Fix** in the Policy Center.
+
+**In the "I've uploaded a new version which contains the fix" field**, name the version and what
+changed, in the policy's own vocabulary:
+
+> Fixed in version 1.4 (versionCode 14), live on Google Play since 2026-08-07. The native ad
+> card background, its call-to-action button, and the "Ad" badge no longer use the app's theme
+> colours, so the ad is visually distinct from surrounding app content.
+
+**If the second review fails with genuinely new evidence**, that is a different signal — the fix
+was incomplete. Re-run the audit checklist rather than re-submitting.
+
+> "Review the policy violation details again to ensure you make the correct changes in your app.
+> Once you've re-reviewed the policies and made additional changes, you can request another
+> review."
 
 # Reporting rule
 

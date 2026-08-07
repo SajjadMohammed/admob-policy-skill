@@ -65,7 +65,14 @@ from Play with a clean Policy Center.
 E2 includes a table of every number that differs from the general rules, so a kids app is not
 audited against the wrong limit.
 
-Plus: Native Validator setup, a 24-point pre-ship audit checklist, and a
+**F. After the fix — the re-review.** The step where most remediations actually fail. A review
+runs against the build **live on the store**, not the one sitting in Play Console, so a review
+requested the moment an update is uploaded is a review of the old binary. The skill explains how
+to tell that apart from a genuine second failure: a repeat rejection carrying the *same*
+screenshots and a generic policy link means the reviewer found nothing new to say — check the
+rollout status before touching the code again.
+
+Plus: Native Validator setup, a 28-point pre-ship audit checklist, and a
 **"known false alarms — do not fix these"** section covering mistakes that are easy to make when
 diagnosing from a screenshot (letterboxing is not distortion; `wrap_content` on a `MediaView`
 breaks the 120x120dp video minimum; AdChoices placement cannot be judged from a screenshot;
@@ -175,7 +182,12 @@ Better Ads Experiences.
 
 ### وأيضاً
 
-أداة Native Validator من Google، قائمة من 24 نقطة تفحصها قبل رفع أي نسخة، وقسم **"إنذارات كاذبة
+**و — بعد الإصلاح، إعادة المراجعة.** هنا يسقط أكثر الناس. المراجعة تفحص النسخة **المنشورة فعلاً
+على المتجر**، لا التي رفعتَها إلى Play Console. فإن طلبتَ المراجعة فور الرفع، فحصوا النسخة
+القديمة. والعلامة على ذلك: يردّون عليك **بنفس الصور** ورابط سياسات عام — أي لم يجدوا جديداً
+يقولونه. راجع حالة النشر قبل أن تعدّل سطراً واحداً.
+
+أداة Native Validator من Google، قائمة من 28 نقطة تفحصها قبل رفع أي نسخة، وقسم **"إنذارات كاذبة
 — لا تصلحها"**: أخطاء شائعة يظنّها المطوّر مخالفة فيكسر كوداً سليماً بلا سبب.
 
 ### حدود المهارة
