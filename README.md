@@ -72,7 +72,7 @@ to tell that apart from a genuine second failure: a repeat rejection carrying th
 screenshots and a generic policy link means the reviewer found nothing new to say — check the
 rollout status before touching the code again.
 
-Plus: Native Validator setup, a 28-point pre-ship audit checklist, and a
+Plus: Native Validator setup, a 30-point pre-ship audit checklist, and a
 **"known false alarms — do not fix these"** section covering mistakes that are easy to make when
 diagnosing from a screenshot (letterboxing is not distortion; `wrap_content` on a `MediaView`
 breaks the 120x120dp video minimum; AdChoices placement cannot be judged from a screenshot;
@@ -187,7 +187,7 @@ Better Ads Experiences.
 القديمة. والعلامة على ذلك: يردّون عليك **بنفس الصور** ورابط سياسات عام — أي لم يجدوا جديداً
 يقولونه. راجع حالة النشر قبل أن تعدّل سطراً واحداً.
 
-أداة Native Validator من Google، قائمة من 28 نقطة تفحصها قبل رفع أي نسخة، وقسم **"إنذارات كاذبة
+أداة Native Validator من Google، قائمة من 30 نقطة تفحصها قبل رفع أي نسخة، وقسم **"إنذارات كاذبة
 — لا تصلحها"**: أخطاء شائعة يظنّها المطوّر مخالفة فيكسر كوداً سليماً بلا سبب.
 
 ### حدود المهارة

@@ -75,6 +75,13 @@ grep -n "?attr/color" app/src/main/res/layout/item_native_ad.xml
 | App open implementation guide | https://developers.google.com/admob/android/app-open |
 | AdMob behavioral policies | https://support.google.com/admob/answer/2753860 |
 | AdMob implementation guidance | https://support.google.com/admob/answer/2936217 |
+| Banner ad guidance | https://support.google.com/admob/answer/6128877 |
+| Banner ad guidance — 300x250 | https://support.google.com/admob/answer/6293636 |
+| Interstitial ad guidance | https://support.google.com/admob/answer/6066980 |
+| How you can prevent invalid activity | https://support.google.com/admob/answer/3342099 |
+| How Google prevents invalid activity | https://support.google.com/admob/answer/3342135 |
+| Estimated vs finalized earnings | https://support.google.com/admob/answer/6147072 |
+| User-generated content | https://support.google.com/admob/topic/3011846 |
 | Banner refresh rate | https://support.google.com/admob/answer/3245199 |
 | **Google Play Ads policy** (separate track) | https://support.google.com/googleplay/android-developer/answer/9857753 |
 | **Google Play Families policies** (Ads and Monetization) | https://support.google.com/googleplay/android-developer/answer/9893335 |
@@ -129,6 +136,28 @@ bind callback.
 ### A2. Layout encourages accidental clicks
 
 The single most common app violation. Often paired with **Invalid traffic** (B1).
+
+**Rule, verbatim.** From the banner ad guidance:
+
+> "Close proximity of banner ads to other elements within an app is **one of the biggest causes
+> of accidental clicks**."
+
+> Banner ads "should not be placed next to interactive buttons, such as a 'next' button or a
+> **custom app menu bar**, next to interactive content like a text chat box or an image in an
+> image gallery, or on a game play screen."
+
+> "Ads should not be placed near navigational buttons… as this causes accidental clicks."
+
+**"Custom app menu bar" is the one Android publishers miss.** A `BottomNavigationView` is
+exactly that. A banner sitting a few dp above it is adjacent to navigation, and the small
+`layout_marginBottom` that looks like separation in the layout editor is a few millimetres on a
+real device. Check whether the bottom bar is actually visible on the screen carrying the banner:
+without an `addOnDestinationChangedListener` hiding it, it is visible on **every** destination,
+including detail screens you assumed were full-screen.
+
+Three ways out, strongest first: drop the banner from screens that show the bottom bar; hide the
+bottom bar on those destinations (detail screens with their own toolbar and back arrow rarely
+need it); or widen the gap substantially — 12dp is not separation, 24–32dp is the floor.
 
 **Triggers**
 
@@ -221,6 +250,32 @@ if (mInterstitialAd == null) {
 
 > Apps cannot display an interstitial ad immediately after another interstitial was shown
 > and closed by the user.
+
+From the interstitial ad guidance:
+
+> "Interstitial ads are designed to be placed **between content**, so they are best placed at
+> natural app transition points."
+
+> "Interstitial ads are best suited for apps with **linear** user experiences. There should be
+> very clear starting and stopping points in an app."
+
+> Avoid "Surprising users, presenting the users with too many ads, or obstructing their use of
+> the app." — "ads should **never be the primary focus** of the app."
+
+**The close-delay tiers — do not confuse them with Play's 15 seconds.** AdMob's own guidance
+gives the SDK-side maximums:
+
+| Ad type | Maximum delay before a close option |
+|---|---|
+| Standard interstitial | up to **5 s** |
+| High-engagement video | up to **12 s** |
+| Third-party (mediated) ads | up to **30 s** |
+
+These are what the served creative may do, not a budget you get to spend. Google Play's Ads
+policy separately requires the user be able to dismiss a full-screen ad after 15 seconds (E1),
+and Families caps it at 5 seconds including rewarded (E2). Three tracks, three numbers — audit
+against the one that governs your app, and remember the mediated 30 s tier means a mediation
+partner can hand you a creative that fails Play's rule even though it passes AdMob's.
 
 **Fix**
 
@@ -655,6 +710,24 @@ earnings. Officially listed examples:
 > "ultimately it is your responsibility as the publisher to ensure that the traffic on your
 > ads is valid."
 
+From "How you can prevent invalid activity":
+
+> "Publishers may not click their own ads or use any means to inflate impressions and/or clicks
+> artificially."
+
+> "If you click too many ads without being in test mode, **your account can be flagged**."
+
+> "Always put your users first — make sure your ads don't draw unnatural attention, mislead…"
+
+Clicking a live ad to "check whether it works" is the violation, not a grey area. Test ads are
+mandatory during development, via either the Google sample ad unit IDs or a registered test
+device.
+
+Detection is not purely automated — Google states it also runs "a team dedicated to detecting
+invalid activity using several specialized tools and a wide variety of techniques." A pattern
+that survives the automated filter can still be caught by review, so "it hasn't been flagged
+yet" is not evidence an implementation is safe.
+
 **Triggers in code**
 
 - Testing against **live production ad unit IDs**.
@@ -879,6 +952,16 @@ or blocks ad serving regardless of a perfect implementation.
 
 **Fix.** Remove or gate the offending content, then request review. No code change helps —
 except for D3 and D4 below, which are implementation problems living in the content section.
+
+**User-generated content is your content.** If the app carries comments, profiles, uploads, chat,
+or any user-submitted text on a screen that shows ads, every category above applies to it. The
+publisher is accountable for what users post, not just for what the app ships. Google keeps a
+whole topic on this: [user-generated content](https://support.google.com/admob/topic/3011846).
+
+Practical minimum for an app with UGC on ad-carrying screens: moderation before display or fast
+takedown after report, a reporting affordance on every user-submitted item, and no ads at all on
+screens whose content has not passed moderation. An offline app with a pre-shipped, read-only
+database has no exposure here — check before spending time on it.
 
 ---
 
@@ -1230,6 +1313,11 @@ Run these before concluding anything.
 28. **The reviewed build is the live build** — before requesting a review, confirm the release
     is *Live* on Play at 100% rollout. Identical screenshots on a repeat rejection means the
     old binary was reviewed, not that the fix failed.
+29. **Is the bottom navigation bar actually visible** on every screen carrying a banner? No
+    `addOnDestinationChangedListener` hiding it means yes, on all of them — and every one of
+    those banners is adjacent to navigation (A2).
+30. **User-generated content on an ad-carrying screen** — comments, profiles, uploads. The
+    content policies apply to what users post, not only to what you ship (D).
 
 # Known false alarms — do not "fix" these
 
@@ -1247,6 +1335,13 @@ Run these before concluding anything.
   applicable to a native app with no WebView.
 - **A revenue drop with a clean Policy Center** is usually Publisher Restrictions (D2) or
   seasonal demand, not a hidden violation. Do not refactor working ad code chasing it.
+- **Estimated earnings falling at month end is not a violation signal.** Google states: "The
+  estimated earnings found under your account's performance reports tab are not finalized until
+  the end of the month, which is when we adjust for invalid clicks or impressions," and "Revenue
+  from invalid clicks and impressions is refunded back to affected advertisers." A gap between
+  estimated and finalized is the normal deduction, and Google will not break it down — "We
+  aren't able to provide details about how much was adjusted per day or per app." A *large*,
+  sustained gap is worth investigating as invalid traffic (B1); a routine one is not.
 - **Rewarded ads are not "incentivized clicks."** B3 bans paying for ordinary impressions;
   `RewardedAd` is a sanctioned format with its own rules (A8).
 - **An interstitial rate that passes A4 can still fail E3.** Better Ads Experiences is about
@@ -1308,6 +1403,20 @@ Rank findings by whether an official quote supports them. Separate:
 - **Violation** — backed by a verbatim policy line
 - **Risk** — plausible but unquoted
 - **Cleanup** — correctness or revenue, not policy
+
+**Google draws this same line, and says so.** The banner and interstitial guidance pages open
+with:
+
+> "While some of the implementations below that we discourage **may not specifically be against
+> our policies**, we may still take appropriate action on any invalid activity that they may
+> cause. Not following these guidelines may lead to invalid activity and/or may result in Google
+> disabling ad serving to your app."
+
+So a *guidance* page is not a *policy* page, and the difference is real — but the consequence
+can be identical, because a discouraged layout that produces accidental clicks becomes an
+invalid-traffic enforcement (B1) under a different heading. Report a guidance-only finding as
+**Risk**, and say which page it comes from: the publisher then knows they are weighing revenue
+against an enforcement route, not against a rule they have already broken.
 
 Never present a guess as a confirmed violation. When a screenshot is the only evidence and
 it is ambiguous, say so and reach for Native Validator instead.
